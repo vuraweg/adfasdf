@@ -658,46 +658,45 @@ const handleDiwaliCTAClick = useCallback(() => {
 
         {showMobileMenu && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm dark:bg-black/70" onClick={() => setShowMobileMenu(false)} />
-            <div className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white shadow-2xl overflow-y-auto safe-area dark:bg-dark-100 dark:shadow-dark-xl">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)} />
+            <div className="fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-[#05131A] shadow-2xl overflow-y-auto safe-area border-l border-[#0c1d25]">
               <div className="flex flex-col space-y-4 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-lg">
                       <img src={logoImage} alt="PrimoBoost AI Logo" className="w-full h-full object-cover" />
                     </div>
-                    <h1 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-gray-100">PrimoBoost AI</h1>
+                    <h1 className="text-lg sm:text-xl font-bold text-slate-100">PrimoBoost AI</h1>
                   </div>
                   <button
                     onClick={() => setShowMobileMenu(false)}
-                    className="min-w-touch min-h-touch p-2 text-secondary-600 hover:text-secondary-900 hover:bg-secondary-100 rounded-lg transition-colors dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-dark-200"
+                    className="min-w-touch min-h-touch p-2 text-[#7A8CAA] hover:text-slate-100 hover:bg-[#0c1d25] rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
                   </button>
                 </div>
 
-                <div className="border-t border-secondary-200 pt-4 dark:border-dark-300">
-                  <nav className="flex flex-col space-y-4">
+                <div className="border-t border-[#0c1d25] pt-4">
+                  <nav className="flex flex-col space-y-1">
                     {[
                       { id: '/', label: 'Home', icon: <Home className="w-5 h-5" /> },
                       { id: '/about', label: 'About Us', icon: <Info className="w-5 h-5" /> },
                       { id: '/blog', label: 'Blog', icon: <BookOpen className="w-5 h-5" /> },
                       { id: '/webinars', label: 'Webinars', icon: <Sparkles className="w-5 h-5" /> },
                       ...(isAuthenticated ? [{ id: '/my-webinars', label: 'My Webinars', icon: <Sparkles className="w-5 h-5" /> }] : []),
-             { id: '/gaming', label: 'Gaming', icon: <Gamepad2 className="w-5 h-5" /> },
+                      { id: '/gaming', label: 'Gaming', icon: <Gamepad2 className="w-5 h-5" /> },
                       { id: '/spatial-reasoning', label: 'Spatial Reasoning', icon: <Brain className="w-5 h-5" /> },
                       { id: '/session', label: 'Resume Session', icon: <Sparkles className="w-5 h-5" /> },
                       ...(isAuthenticated ? [{ id: '/my-bookings', label: 'My Bookings', icon: <BookOpen className="w-5 h-5" /> }] : []),
                       { id: '/careers', label: 'Careers', icon: <Briefcase className="w-5 h-5" /> },
                       { id: '/jobs', label: 'Latest Jobs', icon: <Briefcase className="w-5 h-5" /> },
-                    ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/jobs', label: 'Admin Panel', icon: <Crown className="w-5 h-5" /> }] : []),
-                    ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/webinars', label: 'Webinar Management', icon: <Video className="w-5 h-5" /> }] : []),
-                    ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/blog', label: 'Blog Management', icon: <FileText className="w-5 h-5" /> }] : []),
-                    ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/email-testing', label: 'Email Testing', icon: <Mail className="w-5 h-5" /> }] : []),
-                    ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/sessions', label: 'Session Schedule', icon: <Calendar className="w-5 h-5" /> }] : []),
-{ id: '/tutorials', label: 'Tutorials', icon: <BookOpen className="w-5 h-5" /> },
-{ id: '/contact', label: 'Contact', icon: <Phone className="w-5 h-5" /> },
-
+                      ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/jobs', label: 'Admin Panel', icon: <Crown className="w-5 h-5" /> }] : []),
+                      ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/webinars', label: 'Webinar Management', icon: <Video className="w-5 h-5" /> }] : []),
+                      ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/blog', label: 'Blog Management', icon: <FileText className="w-5 h-5" /> }] : []),
+                      ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/email-testing', label: 'Email Testing', icon: <Mail className="w-5 h-5" /> }] : []),
+                      ...((user?.role === 'admin' || user?.email === 'primoboostai@gmail.com') ? [{ id: '/admin/sessions', label: 'Session Schedule', icon: <Calendar className="w-5 h-5" /> }] : []),
+                      { id: '/tutorials', label: 'Tutorials', icon: <BookOpen className="w-5 h-5" /> },
+                      { id: '/contact', label: 'Contact', icon: <Phone className="w-5 h-5" /> },
                       ...(isAuthenticated ? [{ id: 'wallet', label: 'Referral & Wallet', icon: <Wallet className="w-5 h-5" /> }] : []),
                       ...(isAuthenticated ? [{ id: '/jobs/applications', label: 'My Applications', icon: <FileText className="w-5 h-5" /> }] : []),
                     ].map((item) => (
@@ -706,10 +705,10 @@ const handleDiwaliCTAClick = useCallback(() => {
                         onClick={() => {
                           handlePageChange(item.id);
                         }}
-                        className={`flex items-center space-x-3 min-h-touch px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                        className={`flex items-center space-x-3 min-h-touch px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                           window.location.pathname === item.id
-                            ? 'bg-primary-100 text-primary-700 shadow-md dark:bg-dark-200 dark:text-neon-cyan-400'
-                            : 'text-secondary-700 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-neon-cyan-400 dark:hover:bg-dark-200'
+                            ? 'bg-[rgba(0,230,184,0.12)] text-[#00E6B8]'
+                            : 'text-[#7A8CAA] hover:text-[#00E6B8] hover:bg-[#0c1d25]'
                         }`}
                       >
                         {item.icon}
@@ -719,7 +718,7 @@ const handleDiwaliCTAClick = useCallback(() => {
                   </nav>
                 </div>
 
-                <div className="border-t border-secondary-200 pt-4 dark:border-dark-300">
+                <div className="border-t border-[#0c1d25] pt-4">
                   <AuthButtons
                     onPageChange={handlePageChange}
                     onClose={() => setShowMobileMenu(false)}
@@ -727,15 +726,15 @@ const handleDiwaliCTAClick = useCallback(() => {
                   />
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-secondary-200 dark:border-dark-300">
-                  <div className="bg-gradient-to-r from-primary-50 to-accent-50 rounded-xl p-4 dark:from-dark-200 dark:to-dark-300">
-                    <p className="text-sm text-secondary-700 mb-2 dark:text-gray-300">Need help with your resume?</p>
+                <div className="mt-auto pt-4 border-t border-[#0c1d25]">
+                  <div className="bg-[#0c1d25] rounded-xl p-4">
+                    <p className="text-sm text-[#7A8CAA] mb-2">Need help with your resume?</p>
                     <button
                       onClick={() => {
                         handlePageChange('/');
                         setShowMobileMenu(false);
                       }}
-                      className="w-full btn-primary text-sm flex items-center justify-center space-x-2 shadow-neon-cyan"
+                      className="w-full bg-gradient-to-r from-[#00E6B8] to-cyan-500 text-[#05131A] font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity"
                     >
                       <FileText className="w-4 h-4" />
                       <span>Optimize Now</span>
@@ -840,28 +839,28 @@ const AuthButtons: React.FC<{
   };
   return (
     <div>
-      <h3 className="text-sm font-semibold text-secondary-500 mb-3">Account</h3>
+      <h3 className="text-sm font-semibold text-[#7A8CAA] mb-3">Account</h3>
       {isAuthenticated && user ? (
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3 px-4 py-3 bg-primary-50 rounded-xl dark:bg-dark-200">
-            <div className="bg-gradient-to-br from-neon-cyan-500 to-neon-blue-500 w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-3 px-4 py-3 bg-[#0c1d25] rounded-xl mb-3">
+            <div className="bg-gradient-to-br from-[#00E6B8] to-cyan-500 w-10 h-10 rounded-full flex items-center justify-center text-[#05131A] font-semibold">
               {user.name.split(' ').map((n) => n[0]).join('').toUpperCase().substring(0, 2)}
             </div>
             <div className="overflow-hidden">
-              <p className="font-medium text-secondary-900 dark:text-gray-100 truncate">{user.name}</p>
-              <p className="text-xs text-secondary-500 dark:text-gray-400 truncate">{user.email}</p>
+              <p className="font-medium text-slate-100 truncate">{user.name}</p>
+              <p className="text-xs text-[#7A8CAA] truncate">{user.email}</p>
             </div>
           </div>
           <button
             onClick={() => { navigate('/profile'); onClose(); }}
-            className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-xl font-medium transition-all duration-200 text-secondary-700 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-neon-cyan-400 dark:hover:bg-dark-200"
+            className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-lg font-medium transition-all duration-200 text-[#7A8CAA] hover:text-[#00E6B8] hover:bg-[#0c1d25]"
           >
             <User className="w-5 h-5" />
             <span>Profile Settings</span>
           </button>
           <button
             onClick={() => { navigate('/profile?tab=wallet'); onClose(); }}
-            className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-xl font-medium transition-all duration-200 text-secondary-700 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-neon-cyan-400 dark:hover:bg-dark-200"
+            className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-lg font-medium transition-all duration-200 text-[#7A8CAA] hover:text-[#00E6B8] hover:bg-[#0c1d25]"
           >
             <Wallet className="w-5 h-5" />
             <span>My Wallet</span>
@@ -869,7 +868,7 @@ const AuthButtons: React.FC<{
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-xl font-medium transition-all duration-200 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+            className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-lg font-medium transition-all duration-200 text-red-400 hover:bg-red-500/10"
           >
             <LogOut className="w-5 h-5" />
             <span>{isLoggingOut ? 'Signing Out...' : 'Sign Out'}</span>
@@ -878,7 +877,7 @@ const AuthButtons: React.FC<{
       ) : (
         <button
           onClick={handleLogin}
-          className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-xl font-medium transition-all duration-200 btn-primary shadow-neon-cyan"
+          className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-lg font-semibold transition-all duration-200 bg-gradient-to-r from-[#00E6B8] to-cyan-500 text-[#05131A] hover:opacity-90"
           type="button"
         >
           <LogIn className="w-5 h-5" />
