@@ -397,10 +397,6 @@ const handleDiwaliCTAClick = useCallback(() => {
 }, [isAuthenticated, user, user?.hasSeenProfilePrompt, isLoading, postAuthCallback, location.pathname]);
 
   useEffect(() => {
-    console.log('App.tsx: showProfileManagement state changed to:', showProfileManagement);
-  }, [showProfileManagement]);
-
-  useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     if (location.pathname === '/') {
