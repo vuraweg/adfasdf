@@ -28,7 +28,8 @@ import {
   Info,
   Target,
   Copy as CopyIcon,
-  Share2
+  Share2,
+  ArrowLeft
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
@@ -37,7 +38,8 @@ import { FileUpload } from './FileUpload';
 import { ResumeData, ExtractionResult } from '../types/resume';
 import { AlertModal } from './AlertModal';
 import { DeviceManagement } from './security/DeviceManagement';
-import { supabase } from '../lib/supabaseClient'; // ADDED: Import supabase client
+import { supabase } from '../lib/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 // Mock services for local development if needed
 const mockAuthService = {
@@ -346,21 +348,11 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
-interface UserProfileManagementProps {
-  isOpen: boolean;
-  onClose: () => void;
-  viewMode?: 'profile' | 'wallet';
-  walletRefreshKey: number;
-  setWalletRefreshKey: React.Dispatch<React.SetStateAction<number>>;
-}
-
-export const UserProfileManagement: React.FC<UserProfileManagementProps> = ({
-  isOpen,
-  onClose,
-  viewMode = 'profile',
-  walletRefreshKey,
-  setWalletRefreshKey,
-}) => {
+export const UserProfileManagement: React.FC = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const viewMode = (searchParams.get('tab') as 'profile' | 'wallet') || 'profile';
+  const [walletRefreshKey, setWalletRefreshKey] = useState(0);
+  const navigate = useNavigate();
   const { user, revalidateUserSession, markProfilePromptSeen } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'wallet' | 'security'>(viewMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -464,12 +456,11 @@ export const UserProfileManagement: React.FC<UserProfileManagementProps> = ({
     setProfileCompletion(calculateProfileCompletion());
   }, [watchedValues, calculateProfileCompletion]);
 
-  // Initial calculation
   useEffect(() => {
-    if (user && isOpen) {
+    if (user) {
       setTimeout(() => setProfileCompletion(calculateProfileCompletion()), 100);
     }
-  }, [user, isOpen, calculateProfileCompletion]);
+  }, [user, calculateProfileCompletion]);
 
   useEffect(() => {
     if (viewMode) {
@@ -478,8 +469,7 @@ export const UserProfileManagement: React.FC<UserProfileManagementProps> = ({
   }, [viewMode]);
 
   useEffect(() => {
-    if (user && isOpen) {
-      // Populate form with user data
+    if (user) {
       reset({
         full_name: user.name || '',
         email_address: user.email || '',
@@ -496,7 +486,7 @@ export const UserProfileManagement: React.FC<UserProfileManagementProps> = ({
       });
       fetchWalletBalance();
     }
-  }, [user, isOpen, reset, walletRefreshKey]);
+  }, [user, reset, walletRefreshKey]);
 
   const fetchWalletBalance = useCallback(async () => {
     if (!user) return;
@@ -622,9 +612,8 @@ export const UserProfileManagement: React.FC<UserProfileManagementProps> = ({
       setSubmitSuccess(true);
       setAlertContent({ title: 'Profile Updated!', message: 'Your profile has been saved successfully.', type: 'success' });
       setShowAlert(true);
-      // Automatically close modal after successful update if it was opened from post-signup prompt
       if (user.hasSeenProfilePrompt === false) {
-        onClose();
+        navigate('/');
       }
     } catch (err: any) {
       setSubmitError(err.message || 'Failed to update profile');
@@ -767,18 +756,17 @@ export const UserProfileManagement: React.FC<UserProfileManagementProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm">
-      <div className="bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col border border-slate-700/50">
-        {/* Header */}
+    <div className="min-h-screen pb-20 md:pl-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+        <div className="bg-slate-900/60 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-700/50">
         <div className="relative bg-gradient-to-br from-slate-800 to-slate-800/80 px-3 sm:px-6 py-4 sm:py-8 border-b border-slate-700/50 flex-shrink-0">
           <button
-            onClick={onClose}
-            className="absolute top-2 sm:top-4 right-2 sm:right-4 w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors rounded-full hover:bg-slate-700/50 z-10 min-w-[44px] min-h-[44px]"
+            onClick={() => navigate(-1)}
+            className="absolute top-2 sm:top-4 left-2 sm:left-4 flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors rounded-lg hover:bg-slate-700/50 z-10"
           >
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back</span>
           </button>
 
           <div className="text-center max-w-4xl mx-auto px-8">
@@ -1422,6 +1410,7 @@ export const UserProfileManagement: React.FC<UserProfileManagementProps> = ({
             <DeviceManagement />
           )}
         </div>
+      </div>
       </div>
       <AlertModal
         isOpen={showAlert}

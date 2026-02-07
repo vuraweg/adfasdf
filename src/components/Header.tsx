@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { AuthModal } from './auth/AuthModal';
 import { DeviceManagement } from './security/DeviceManagement';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   children?: React.ReactNode;
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   showMobileMenu,
   onShowProfile
 }) => {
+  const headerNavigate = useNavigate();
   const { user, isAuthenticated, logout, isLoading } = useAuth();
   const { isChristmasMode } = useTheme();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -147,9 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                       <button
                         onClick={() => {
-                          if (onShowProfile) {
-                            onShowProfile();
-                          }
+                          headerNavigate('/profile');
                           setShowUserMenu(false);
                         }}
                         className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-slate-800/70 hover:text-emerald-400 transition-colors flex items-center space-x-3 min-h-touch"

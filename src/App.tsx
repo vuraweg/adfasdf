@@ -80,11 +80,9 @@ function App() {
 
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showProfileManagement, setShowProfileManagement] = useState(false);
   const [showSubscriptionPlans, setShowSubscriptionPlans] = useState(false);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [profileViewMode, setProfileViewMode] = useState<'profile' | 'wallet'>('profile');
   const [userSubscription, setUserSubscription] = useState<any>(null);
 
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -98,8 +96,6 @@ function App() {
     'login' | 'signup' | 'forgot-password' | 'success' | 'postSignupPrompt' | 'reset_password'
   >('login');
 
-  const [isPostSignupProfileFlow, setIsPostSignupProfileFlow] = useState(false);
-  const [walletRefreshKey, setWalletRefreshKey] = useState(0);
 
   const [showPlanSelectionModal, setShowPlanSelectionModal] = useState(false);
   const [planSelectionFeatureId, setPlanSelectionFeatureId] = useState<string | undefined>(undefined);
@@ -240,13 +236,10 @@ function App() {
     [refreshUserSubscription, handleShowAlert, toolProcessTrigger]
   );
 
-  const handleShowProfile = useCallback((mode: 'profile' | 'wallet' = 'profile', isPostSignup: boolean = false) => {
-    setProfileViewMode(mode);
-    setShowProfileManagement(true);
+  const handleShowProfile = useCallback((mode: 'profile' | 'wallet' = 'profile') => {
     setShowMobileMenu(false);
-    setIsPostSignupProfileFlow(isPostSignup);
-    console.log('App.tsx: handleShowProfile called. showProfileManagement set to true.');
-  }, []);
+    navigate(mode === 'wallet' ? '/profile?tab=wallet' : '/profile');
+  }, [navigate]);
 
   const handleShowPlanSelection = useCallback(
     (featureId?: string, expandAddons: boolean = false, planId?: string, couponCode?: string) => {
@@ -291,10 +284,10 @@ const handleDiwaliCTAClick = useCallback(() => {
       if (path === 'menu') {
         handleMobileMenuToggle();
       } else if (path === 'profile') {
-        handleShowProfile();
+        navigate('/profile');
         setShowMobileMenu(false);
       } else if (path === 'wallet') {
-        handleShowProfile('wallet');
+        navigate('/profile?tab=wallet');
         setShowMobileMenu(false);
       } else if (path === 'subscription-plans') {
         handleShowPlanSelection(undefined, false);
@@ -304,7 +297,7 @@ const handleDiwaliCTAClick = useCallback(() => {
         setShowMobileMenu(false);
       }
     },
-    [handleMobileMenuToggle, handleShowProfile, handleShowPlanSelection, navigate]
+    [handleMobileMenuToggle, handleShowPlanSelection, navigate]
   );
 
   useEffect(() => {
@@ -545,6 +538,7 @@ const handleDiwaliCTAClick = useCallback(() => {
           <Route path="/key-finder" element={<KeyFinderPage />} />
           <Route path="/bubble-selection" element={<BubbleSelectionPage />} />
           <Route path="/spatial-reasoning" element={<SpatialReasoningDemoPage />} />
+          <Route path="/profile" element={<UserProfileManagement />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/test-email-digest" element={<TestEmailDigest />} />
           <Route path="/session" element={<SessionLandingPage onShowAuth={handleShowAuth} />} />
@@ -734,7 +728,6 @@ const handleDiwaliCTAClick = useCallback(() => {
                     onPageChange={handlePageChange}
                     onClose={() => setShowMobileMenu(false)}
                     onShowAuth={handleShowAuth}
-                    onShowProfile={handleShowProfile}
                   />
                 </div>
 
@@ -767,7 +760,7 @@ const handleDiwaliCTAClick = useCallback(() => {
             setShowAuthModal(false);
             setAuthModalInitialView('login');
           }}
-          onProfileFillRequest={() => handleShowProfile('profile', true)}
+          onProfileFillRequest={() => handleShowProfile('profile')}
           initialView={authModalInitialView}
           onPromptDismissed={() => {
             if (user) {
@@ -818,15 +811,6 @@ const handleDiwaliCTAClick = useCallback(() => {
         )}
       
 
-        {showProfileManagement && (
-          <UserProfileManagement
-            isOpen={showProfileManagement}
-            onClose={() => setShowProfileManagement(false)}
-            viewMode={profileViewMode}
-            walletRefreshKey={walletRefreshKey}
-            setWalletRefreshKey={setWalletRefreshKey}
-          />
-        )}
       </div>
     </div>
   );
@@ -836,8 +820,8 @@ const AuthButtons: React.FC<{
   onPageChange: (path: string) => void;
   onClose: () => void;
   onShowAuth: (callback?: () => void) => void;
-  onShowProfile: (mode?: 'profile' | 'wallet') => void;
-}> = ({ onPageChange, onClose, onShowAuth, onShowProfile }) => {
+}> = ({ onPageChange, onClose, onShowAuth }) => {
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const handleLogout = async () => {
@@ -873,14 +857,14 @@ const AuthButtons: React.FC<{
             </div>
           </div>
           <button
-            onClick={() => onShowProfile('profile')}
+            onClick={() => { navigate('/profile'); onClose(); }}
             className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-xl font-medium transition-all duration-200 text-secondary-700 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-neon-cyan-400 dark:hover:bg-dark-200"
           >
             <User className="w-5 h-5" />
             <span>Profile Settings</span>
           </button>
           <button
-            onClick={() => onShowProfile('wallet')}
+            onClick={() => { navigate('/profile?tab=wallet'); onClose(); }}
             className="w-full flex items-center space-x-3 min-h-touch px-4 py-3 rounded-xl font-medium transition-all duration-200 text-secondary-700 hover:text-primary-600 hover:bg-primary-50 dark:text-gray-300 dark:hover:text-neon-cyan-400 dark:hover:bg-dark-200"
           >
             <Wallet className="w-5 h-5" />
