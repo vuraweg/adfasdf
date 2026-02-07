@@ -1,109 +1,82 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, Send, X } from "lucide-react";
+import { MessageCircle, Send, X, Bot, User } from "lucide-react";
+import { getChatResponse } from "../../services/chatbotService";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  timestamp: Date;
 }
+
+const WELCOME_MESSAGE: Message = {
+  role: "assistant",
+  content:
+    "Hi there! I'm the PrimoBoost AI Assistant. I can help you with resume optimization, ATS scores, job listings, interview prep, pricing, and more.\n\nHow can I help you today?",
+  timestamp: new Date(),
+};
+
+const FAQ_CHIPS = [
+  "What is PrimoBoost AI?",
+  "How do I optimize my resume?",
+  "Tell me about pricing",
+  "Job listings",
+  "Interview prep",
+  "How to contact support?",
+];
 
 export const FloatingChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showFaq, setShowFaq] = useState(true);
-  const [showAllChips, setShowAllChips] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
-    console.log("Gemini API Key Loaded:", GEMINI_KEY ? "Loaded" : "Undefined");
-  }, [GEMINI_KEY]);
+    scrollToBottom();
+  }, [messages, loading, scrollToBottom]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 300);
+    }
+  }, [isOpen]);
 
   const toggleOpen = () => {
     if (isOpen) {
-      setMessages([]);
-      setShowFaq(true);
-      setShowAllChips(false);
+      setMessages([WELCOME_MESSAGE]);
     }
     setIsOpen((prev) => !prev);
   };
 
   const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
-    setShowFaq(false);
+    const trimmed = text.trim();
+    if (!trimmed || loading) return;
 
-    const userMsg = { role: "user", content: text };
+    const userMsg: Message = { role: "user", content: trimmed, timestamp: new Date() };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
     try {
-      const systemPrompt = `
-You are PrimoBoost AI, the official support assistant for PrimoBoostAI.in.
-
-Your goal:
-Sound like a real, friendly customer support chatbot - short sentences, conversational tone, no "Question:" or "Answer:" labels.
-
-Guidelines:
-- Never use markdown (**bold**, asterisks, etc.).
-- Never use emojis or decorative symbols.
-- Keep replies professional and natural, like human chat support.
-- Keep each response under 5 lines.
-- Use line breaks to make answers easy to read.
-
-If the user asks about:
-- "PrimoBoost AI" - explain the platform (AI-powered resume optimization, job matching, interview prep).
-- "resume optimization" - explain the feature simply.
-- "job listings" - explain that daily jobs are posted and matched with JD-based resumes.
-- "pricing", "plans", "subscription", "buy", or "payment" - show clear plan details below.
-
-Pricing (One-time purchase, 50% OFF):
-Leader Plan - ₹16,400 - 100 Resume Credits
-Achiever Plan - ₹13,200 - 50 Resume Credits
-Accelerator Plan - ₹11,600 - 25 Resume Credits
-Starter Plan - ₹1,640 - 10 Resume Credits
-Kickstart Plan - ₹1,320 - 5 Resume Credits
-
-Each plan includes Resume Optimizations, ATS Score Checks, and Premium Support.
-
-End payment-related answers with:
-"For billing or payment issues, email primoboostai@gmail.com with a screenshot. Our team replies within 2 minutes."
-`;
-
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: `${systemPrompt}\n\nUser: ${text}` }],
-              },
-            ],
-          }),
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || "Gemini API error");
-
-      const reply =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "Sorry, I'm having trouble right now. Please try again later.";
-
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-    } catch (err) {
-      console.error("Chat Error:", err);
+      const reply = await getChatResponse(trimmed);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: reply, timestamp: new Date() },
+      ]);
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            "There seems to be a connection issue. Please try again or email primoboostai@gmail.com for quick support.",
+            "I'm having trouble responding right now. Please try again or email primoboostai@gmail.com for quick support.",
+          timestamp: new Date(),
         },
       ]);
     } finally {
@@ -111,151 +84,180 @@ End payment-related answers with:
     }
   };
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage(input);
   };
 
-  const faqs = [
-    "What is PrimoBoost AI?",
-    "How do I optimize my resume?",
-    "Tell me about job listings.",
-    "How do I fix payment issues?",
-    "Explain subscription plans.",
-    "How to contact support?",
-  ];
-  const chips = showAllChips ? faqs : faqs.slice(0, 4);
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const showChips = messages.length <= 1;
 
   return (
-    <div className="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-7 sm:right-6">
+    <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
       <AnimatePresence>
         {isOpen && (
-          <>
-            <motion.div
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={toggleOpen}
-            />
-            <motion.div
-              key="chat-window"
-              className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 sm:px-6"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 36 }}
-              transition={{ type: "spring", damping: 18, stiffness: 220 }}
-            >
-              <motion.div className="w-full max-w-[640px] overflow-hidden rounded-t-[22px] bg-white shadow-[0_-18px_50px_rgba(0,0,0,0.18)] dark:bg-gray-900">
-                <div className="relative flex h-14 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-800">
-                  <div className="absolute left-1/2 top-2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700" />
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 dark:bg-gray-800 dark:text-white">
-                      <Bot className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold leading-tight text-gray-900 dark:text-gray-100">
-                        PrimoBoost AI Assistant
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Quick answers, resume help</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={toggleOpen}
-                    className="flex h-11 w-11 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition dark:text-gray-300 dark:hover:bg-gray-800"
-                    aria-label="Close chatbot"
+          <motion.div
+            key="chat-window"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="absolute bottom-16 right-0 mb-2 w-[340px] sm:w-[380px] overflow-hidden rounded-2xl border border-gray-700/50 bg-gray-900 shadow-2xl shadow-black/40"
+          >
+            <div className="flex items-center gap-3 border-b border-gray-700/50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-4 py-3">
+              <div className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30">
+                <Bot className="h-4.5 w-4.5 text-emerald-400" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-gray-900 bg-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-100">PrimoBoost AI</p>
+                <p className="text-[11px] text-emerald-400/80">Online - Ready to help</p>
+              </div>
+              <button
+                onClick={toggleOpen}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-700/50 hover:text-gray-200"
+                aria-label="Close chat"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex h-[380px] flex-col">
+              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin">
+                {messages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                   >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <div className="flex min-h-[55vh] h-[60vh] max-h-[70vh] flex-col bg-white dark:bg-gray-900">
-                  <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-                    {messages.map((msg, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed whitespace-pre-line ${
-                            msg.role === "user"
-                              ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white"
-                              : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                          }`}
-                        >
-                          {msg.content}
-                        </div>
-                      </div>
-                    ))}
-                    {loading && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 animate-pulse">
-                        PrimoBoost AI is typing...
-                      </p>
-                    )}
-                  </div>
-
-                  {showFaq && (
-                    <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 dark:bg-gray-900 dark:border-gray-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Quick replies</p>
-                        {!showAllChips && (
-                          <button
-                            onClick={() => setShowAllChips(true)}
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-neon-cyan-400"
-                          >
-                            More...
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex overflow-x-auto gap-2 pb-1">
-                        {chips.map((f) => (
-                          <button
-                            key={f}
-                            onClick={() => sendMessage(f)}
-                            className="flex-shrink-0 rounded-2xl bg-blue-100 text-blue-800 px-3 py-2 text-xs font-semibold hover:bg-blue-200 transition dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
-                          >
-                            {f}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <form
-                    onSubmit={handleSend}
-                    className="flex items-center gap-2 border-t border-gray-200 bg-gray-50 px-3 py-3 dark:border-gray-800 dark:bg-gray-900"
-                  >
-                    <input
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Ask about resumes, jobs, or pricing..."
-                      className="flex-1 h-12 rounded-2xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                    />
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow hover:scale-105 transition disabled:opacity-60"
+                    <div
+                      className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${
+                        msg.role === "user"
+                          ? "bg-cyan-500/15 text-cyan-400"
+                          : "bg-emerald-500/15 text-emerald-400"
+                      }`}
                     >
-                      <Send className="h-4 w-4" />
-                    </button>
-                  </form>
+                      {msg.role === "user" ? (
+                        <User className="h-3.5 w-3.5" />
+                      ) : (
+                        <Bot className="h-3.5 w-3.5" />
+                      )}
+                    </div>
+                    <div className={`max-w-[80%] ${msg.role === "user" ? "text-right" : ""}`}>
+                      <div
+                        className={`rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-line ${
+                          msg.role === "user"
+                            ? "rounded-br-md bg-cyan-600 text-white"
+                            : "rounded-bl-md bg-gray-800 text-gray-200 ring-1 ring-gray-700/50"
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                      <p
+                        className={`mt-1 text-[10px] text-gray-500 ${
+                          msg.role === "user" ? "text-right" : ""
+                        }`}
+                      >
+                        {formatTime(msg.timestamp)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+
+                {loading && (
+                  <div className="flex gap-2">
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+                      <Bot className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="rounded-2xl rounded-bl-md bg-gray-800 px-4 py-3 ring-1 ring-gray-700/50">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400 [animation-delay:0ms]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400 [animation-delay:150ms]" />
+                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-emerald-400 [animation-delay:300ms]" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+
+              {showChips && (
+                <div className="border-t border-gray-700/50 bg-gray-800/50 px-3 py-2.5">
+                  <p className="mb-2 text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                    Quick Questions
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {FAQ_CHIPS.map((chip) => (
+                      <button
+                        key={chip}
+                        onClick={() => sendMessage(chip)}
+                        className="rounded-full border border-gray-600/50 bg-gray-800 px-3 py-1.5 text-[11px] font-medium text-gray-300 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </motion.div>
-            </motion.div>
-          </>
+              )}
+
+              <form
+                onSubmit={handleSubmit}
+                className="flex items-center gap-2 border-t border-gray-700/50 bg-gray-900 px-3 py-2.5"
+              >
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your question..."
+                  disabled={loading}
+                  className="flex-1 rounded-xl border border-gray-700 bg-gray-800 px-3.5 py-2.5 text-[13px] text-gray-100 placeholder-gray-500 outline-none transition-colors focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !input.trim()}
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white transition-all hover:bg-emerald-500 disabled:opacity-40 disabled:hover:bg-emerald-600"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
       <motion.button
-        key="chat-toggle"
         onClick={toggleOpen}
-        initial={false}
-        animate={{ scale: 1, rotate: isOpen ? 90 : 0 }}
-        whileTap={{ scale: 0.9 }}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 via-indigo-500 to-blue-700 text-white shadow-lg hover:shadow-xl focus:outline-none"
-        aria-label={isOpen ? "Close chatbot" : "Open chatbot"}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 transition-shadow hover:shadow-xl hover:shadow-emerald-500/30"
+        aria-label={isOpen ? "Close chat" : "Open chat"}
       >
-        {isOpen ? <X className="h-6 w-6" /> : <Bot className="h-6 w-6" />}
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <X className="h-6 w-6" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="open"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <MessageCircle className="h-6 w-6" />
+            </motion.div>
+          ) }
+        </AnimatePresence>
       </motion.button>
     </div>
   );
