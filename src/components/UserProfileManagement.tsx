@@ -842,17 +842,17 @@ export const UserProfileManagement: React.FC = () => {
               </div>
             </div>
             <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex px-4 pb-2 gap-1 min-w-max">
+              <div className="flex px-4 pb-3 gap-2 min-w-max">
                 {SIDEBAR_ITEMS.map(item => {
                   const Icon = item.icon;
                   return (
                     <button
                       key={item.id}
                       onClick={() => setActiveTab(item.id as ProfileTab)}
-                      className={'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ' +
+                      className={'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 border ' +
                         (activeTab === item.id
-                          ? 'bg-[rgba(0,230,184,0.15)] text-[#00E6B8]'
-                          : 'text-slate-500 hover:text-slate-300')
+                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-500/10'
+                          : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:text-slate-200 hover:border-slate-600')
                       }
                     >
                       <Icon className="w-3.5 h-3.5" />
