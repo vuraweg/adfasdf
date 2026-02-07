@@ -40,6 +40,29 @@ import { AlertModal } from './AlertModal';
 import { DeviceManagement } from './security/DeviceManagement';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { ProfileBookingsTab } from './profile/ProfileBookingsTab';
+import { ProfileUsageTab } from './profile/ProfileUsageTab';
+import { ProfilePaymentsTab } from './profile/ProfilePaymentsTab';
+import { ProfilePreferencesTab } from './profile/ProfilePreferencesTab';
+import {
+  Calendar,
+  BarChart3,
+  CreditCard,
+  Settings,
+  Shield,
+} from 'lucide-react';
+
+type ProfileTab = 'profile' | 'bookings' | 'usage' | 'payments' | 'preferences' | 'wallet' | 'security';
+
+const SIDEBAR_ITEMS = [
+  { id: 'profile', label: 'My Profile', icon: UserIcon },
+  { id: 'bookings', label: 'My Bookings', icon: Calendar },
+  { id: 'usage', label: 'Usage & Plan', icon: BarChart3 },
+  { id: 'payments', label: 'Payments', icon: CreditCard },
+  { id: 'preferences', label: 'Preferences', icon: Settings },
+  { id: 'wallet', label: 'Wallet & Referrals', icon: Wallet },
+  { id: 'security', label: 'Security', icon: Shield },
+];
 
 // Mock services for local development if needed
 const mockAuthService = {
@@ -350,11 +373,11 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export const UserProfileManagement: React.FC = () => {
   const searchParams = new URLSearchParams(window.location.search);
-  const viewMode = (searchParams.get('tab') as 'profile' | 'wallet') || 'profile';
+  const viewMode = (searchParams.get('tab') as ProfileTab) || 'profile';
   const [walletRefreshKey, setWalletRefreshKey] = useState(0);
   const navigate = useNavigate();
   const { user, revalidateUserSession, markProfilePromptSeen } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'wallet' | 'security'>(viewMode);
+  const [activeTab, setActiveTab] = useState<ProfileTab>(viewMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -757,85 +780,109 @@ export const UserProfileManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 md:pl-16">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        <div className="bg-slate-900/60 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-700/50">
-        <div className="relative bg-gradient-to-br from-slate-800 to-slate-800/80 px-3 sm:px-6 py-4 sm:py-8 border-b border-slate-700/50 flex-shrink-0">
+    <div className="min-h-screen pb-20 md:pl-16 bg-[#05131A]">
+      <div className="flex min-h-screen">
+        <aside className="hidden lg:flex flex-col w-64 flex-shrink-0 border-r border-[#0c1d25] bg-[#071018] sticky top-0 h-screen overflow-y-auto">
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-2 sm:top-4 left-2 sm:left-4 flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors rounded-lg hover:bg-slate-700/50 z-10"
+            className="flex items-center gap-2 px-5 py-4 text-sm text-slate-400 hover:text-[#00E6B8] transition-colors border-b border-[#0c1d25]"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back</span>
+            Back
           </button>
-
-          <div className="text-center max-w-4xl mx-auto px-8">
-            <div className="bg-gradient-to-br from-emerald-500 to-cyan-500 w-12 h-12 sm:w-20 sm:h-20 rounded-xl sm:rounded-3xl flex items-center justify-center mx-auto mb-3 sm:mb-6 shadow-lg shadow-emerald-500/25">
-              <UserIcon className="w-6 h-6 sm:w-10 h-10 text-white" />
+          <div className="px-5 py-6 border-b border-[#0c1d25]">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00E6B8] to-cyan-500 flex items-center justify-center mb-3">
+              <UserIcon className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-lg sm:text-3xl lg:text-4xl font-bold text-slate-100 mb-2 sm:mb-3">
-              Manage Your Profile
-            </h1>
-            <p className="text-sm sm:text-lg lg:text-xl text-slate-300 mb-3 sm:mb-4">
-              Keep your information up-to-date for seamless resume optimization and auto-apply.
-            </p>
-            {/* Profile Completion Indicator */}
-            <div className="max-w-xs mx-auto">
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="text-slate-400">Profile Completion</span>
-                <span className={'font-semibold ' + (profileCompletion >= 80 ? 'text-emerald-400' : profileCompletion >= 50 ? 'text-yellow-400' : 'text-red-400')}>{profileCompletion}%</span>
+            <h2 className="text-base font-semibold text-slate-100 truncate">{user?.name || 'User'}</h2>
+            <p className="text-xs text-slate-500 truncate mt-0.5">{user?.email}</p>
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-slate-500">Profile</span>
+                <span className={profileCompletion >= 80 ? 'text-[#00E6B8]' : profileCompletion >= 50 ? 'text-amber-400' : 'text-red-400'}>{profileCompletion}%</span>
               </div>
-              <div className="w-full bg-slate-700 rounded-full h-2">
-                <div 
-                  className={'h-2 rounded-full transition-all duration-500 ' + (profileCompletion >= 80 ? 'bg-emerald-500' : profileCompletion >= 50 ? 'bg-yellow-500' : 'bg-red-500')}
+              <div className="w-full bg-[#0c1d25] rounded-full h-1.5">
+                <div
+                  className={'h-1.5 rounded-full transition-all duration-500 ' + (profileCompletion >= 80 ? 'bg-[#00E6B8]' : profileCompletion >= 50 ? 'bg-amber-400' : 'bg-red-400')}
                   style={{ width: profileCompletion + '%' }}
-                ></div>
+                />
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                {profileCompletion < 50 ? 'Add more details to improve your profile' : profileCompletion < 80 ? 'Good progress! Keep adding details' : 'Great! Your profile is well-filled'}
-              </p>
             </div>
           </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="border-b border-slate-700/50 flex-shrink-0">
-          <nav className="flex space-x-4 sm:space-x-8 px-3 sm:px-6 lg:px-8">
-            {[
-              { id: 'profile', label: 'My Profile', icon: <UserIcon className="w-4 h-4 sm:w-5 h-5" /> },
-              { id: 'wallet', label: 'Wallet & Referrals', icon: <Wallet className="w-4 h-4 sm:w-5 h-5" /> },
-              { id: 'security', label: 'Security', icon: <Sparkles className="w-4 h-4 sm:w-5 h-5" /> },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'profile' | 'wallet' | 'security')}
-                className={'py-3 sm:py-4 px-2 sm:px-0 border-b-2 flex items-center space-x-2 font-medium text-sm sm:text-base transition-colors ' +
-                  (activeTab === tab.id
-                    ? 'border-emerald-500 text-emerald-400'
-                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600')
-                }
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
+          <nav className="flex-1 py-3 px-3">
+            {SIDEBAR_ITEMS.map(item => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as ProfileTab)}
+                  className={'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-0.5 ' +
+                    (activeTab === item.id
+                      ? 'bg-[rgba(0,230,184,0.12)] text-[#00E6B8]'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#0c1d25]')
+                  }
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
-        </div>
+        </aside>
 
-        {/* Content Area */}
-        <div className="p-3 sm:p-6 lg:p-8 overflow-y-auto flex-1 relative scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-          {isParsingResume && (
-            <div className="absolute inset-0 z-20 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center">
-              <div className="flex flex-col items-center space-y-3 px-6 py-4 rounded-xl border border-slate-700 shadow-lg bg-slate-800 max-w-sm">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
-                <span className="text-slate-200 font-medium text-center">{parsingProgress || 'Parsing your resume…'}</span>
-                <div className="w-full bg-slate-700 rounded-full h-1.5">
-                  <div className="bg-emerald-500 h-1.5 rounded-full animate-pulse" style={{ width: '60%' }}></div>
-                </div>
-                <p className="text-xs text-slate-400 text-center">This may take 10-30 seconds depending on resume complexity</p>
+        <div className="flex-1 min-w-0">
+          <div className="lg:hidden sticky top-0 z-10 bg-[#05131A]/95 backdrop-blur-sm border-b border-[#0c1d25]">
+            <div className="flex items-center gap-3 px-4 py-3">
+              <button onClick={() => navigate(-1)} className="p-2 text-slate-400 hover:text-slate-200 transition-colors rounded-lg">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-base font-semibold text-slate-100 truncate">{user?.name || 'My Profile'}</h1>
+                <p className="text-xs text-slate-500">{profileCompletion}% complete</p>
               </div>
             </div>
-          )}
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex px-4 pb-2 gap-1 min-w-max">
+                {SIDEBAR_ITEMS.map(item => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id as ProfileTab)}
+                      className={'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ' +
+                        (activeTab === item.id
+                          ? 'bg-[rgba(0,230,184,0.15)] text-[#00E6B8]'
+                          : 'text-slate-500 hover:text-slate-300')
+                      }
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
+            <div className="hidden lg:block mb-6">
+              <h1 className="text-2xl font-bold text-slate-100">
+                {SIDEBAR_ITEMS.find(i => i.id === activeTab)?.label || 'My Profile'}
+              </h1>
+            </div>
+
+            {isParsingResume && (
+              <div className="fixed inset-0 z-50 bg-[#05131A]/80 backdrop-blur-sm flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-3 px-6 py-4 rounded-xl border border-[#0c1d25] shadow-lg bg-[#0a1a24] max-w-sm">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#00E6B8]" />
+                  <span className="text-slate-200 font-medium text-center">{parsingProgress || 'Parsing your resume...'}</span>
+                  <div className="w-full bg-[#0c1d25] rounded-full h-1.5">
+                    <div className="bg-[#00E6B8] h-1.5 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                  </div>
+                  <p className="text-xs text-slate-400 text-center">This may take 10-30 seconds depending on resume complexity</p>
+                </div>
+              </div>
+            )}
           {activeTab === 'profile' && (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {submitError && (
@@ -1406,11 +1453,17 @@ export const UserProfileManagement: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'security' && (
-            <DeviceManagement />
-          )}
+          {activeTab === 'bookings' && <ProfileBookingsTab />}
+
+          {activeTab === 'usage' && <ProfileUsageTab />}
+
+          {activeTab === 'payments' && <ProfilePaymentsTab />}
+
+          {activeTab === 'preferences' && <ProfilePreferencesTab />}
+
+          {activeTab === 'security' && <DeviceManagement />}
+          </div>
         </div>
-      </div>
       </div>
       <AlertModal
         isOpen={showAlert}

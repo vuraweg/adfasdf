@@ -25,8 +25,8 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ currentPage, onPageC
     { id: '/jobs', label: 'Jobs', icon: <Briefcase className="w-5 h-5" /> },
     { id: '/tutorials', label: 'Tutorials', icon: <BookOpen className="w-5 h-5" /> },
     { id: '/contact', label: 'Contact', icon: <Phone className="w-5 h-5" /> },
-    ...(isAuthenticated ? [{ id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" /> }] : []),
-    ...(isAuthenticated ? [{ id: 'wallet', label: 'Wallet', icon: <Wallet className="w-5 h-5" /> }] : []),
+    ...(isAuthenticated ? [{ id: '/profile', label: 'Profile', icon: <User className="w-5 h-5" /> }] : []),
+    ...(isAuthenticated ? [{ id: '/profile?tab=wallet', label: 'Wallet', icon: <Wallet className="w-5 h-5" /> }] : []),
     ...(isAuthenticated ? [{ id: '/jobs/applications', label: 'Applications', icon: <FileText className="w-5 h-5" /> }] : []),
     ...(isAdmin ? [{ id: '/admin/email-testing', label: 'Email', icon: <Mail className="w-5 h-5" /> }] : []),
     { id: 'menu', label: 'Menu', icon: <Menu className="w-5 h-5" /> }
@@ -50,7 +50,7 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ currentPage, onPageC
       
       <div className="flex items-center justify-around pb-safe-bottom">
         {navItems.map((item) => (
-          item.id === 'menu' || item.id === 'profile' || item.id === 'wallet' ? (
+          item.id === 'menu' ? (
             <button
               key={item.id}
               onClick={() => onPageChange(item.id)}
@@ -73,14 +73,14 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ currentPage, onPageC
               key={item.id}
               to={item.id}
               className={`flex flex-col items-center justify-center py-2 sm:py-3 px-2 min-w-touch min-h-touch transition-colors touch-spacing ${
-                window.location.pathname === item.id
+                (window.location.pathname + window.location.search) === item.id || window.location.pathname === item.id
                   ? activeColor
                   : `text-slate-400 ${hoverColor}`
               }`}
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <div className={`p-1.5 rounded-full mb-1 transition-colors ${
-                window.location.pathname === item.id ? activeBg : 'hover:bg-slate-800'
+                (window.location.pathname + window.location.search) === item.id || window.location.pathname === item.id ? activeBg : 'hover:bg-slate-800'
               }`}>
                 {item.icon}
               </div>
