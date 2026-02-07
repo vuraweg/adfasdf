@@ -849,10 +849,10 @@ export const UserProfileManagement: React.FC = () => {
                     <button
                       key={item.id}
                       onClick={() => setActiveTab(item.id as ProfileTab)}
-                      className={'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 border ' +
+                      className={'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 ' +
                         (activeTab === item.id
-                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-500/10'
-                          : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:text-slate-200 hover:border-slate-600')
+                          ? 'bg-[rgba(0,230,184,0.12)] text-[#00E6B8]'
+                          : 'text-[#7A8CAA] hover:text-[#00E6B8] hover:bg-[#0c1d25]')
                       }
                     >
                       <Icon className="w-3.5 h-3.5" />
